@@ -1,0 +1,96 @@
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+
+plugins {
+	id 'fabric-loom' version '1.4-SNAPSHOT'
+	id 'maven-publish'
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+loom {
+    splitEnvironmentSourceSets()
+
+	mods {
+		"event-notifications" {
+			sourceSet sourceSets.main
+		}
+	}
+
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+
+	include "io.leangen.geantyref:geantyref:${project.geantyref_version}"
+
+	implementation(include("org.spongepowered:configurate-core:${project.configurate_version}"))
+	implementation(include("org.spongepowered:configurate-jackson:${project.configurate_version}"))
+
+	implementation(include("com.fasterxml.jackson.core:jackson-core:${project.jackson_version}"))
+	implementation(include("com.fasterxml.jackson.core:jackson-annotations:${project.jackson_version}"))
+	implementation(include("com.fasterxml.jackson.core:jackson-databind:${project.jackson_version}"))
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 17
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
+}
+
+jar {
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
+}
+
+tasks.register("localInstallJar", Copy) {
+	dependsOn remapJar
+	from "${project.projectDir}/build/libs/event-notifications-${project.version}.jar"
+	into new File("${project.projectDir}/${project.local_mods_dir}/")
+
+	doFirst {
+		File destDir = file("${project.projectDir}/${project.local_mods_dir}")
+		if (!destDir.exists()) {
+			if (!destDir.mkdirs()) {
+				throw new GradleException("Could not create directory: ${destDir}")
+			}
+		}
+	}
+}
+
+tasks.register('localInstallFabricApi') {
+	doLast {
+		try {
+			def src = new URL("https://github.com/FabricMC/fabric/releases/download/${project.fabric_version_prefix}%2B${project.minecraft_version}/fabric-api-${project.fabric_version_prefix}+${project.minecraft_version}.jar")
+			def destPath = Paths.get("${project.projectDir}/${project.local_mods_dir}/fabric-api-${project.fabric_version_prefix}+${project.minecraft_version}.jar")
+			Files.createDirectories(destPath.getParent())
+			Files.copy(src.openStream(), destPath, StandardCopyOption.REPLACE_EXISTING)
+		} catch (FileNotFoundException e) {
+			println("FileNotFoundException: ${e.message}")
+		} catch (Exception e) {
+			println("Exception: ${e.message}")
+		}
+	}
+}

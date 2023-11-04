@@ -1,0 +1,8 @@
+FROM itzg/minecraft-server:java17
+
+ARG MINECRAFT_VERSION
+
+ENV EULA=TRUE \
+    TYPE=FABRIC \
+    VERSION=${MINECRAFT_VERSION}
+
