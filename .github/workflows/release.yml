@@ -28,10 +28,18 @@ jobs:
       - name: build
         run: ./gradlew build
 
+      - name: get mod version
+        id: mod_version
+        run: echo "version=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+
+      - name: get mod name
+        id: mod_name
+        run: echo "name=$(grep '^archives_base_name=' gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+
       - name: create release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/libs/*.jar
+          files: build/libs/${{ steps.mod_name.outputs.name }}-${{ steps.mod_version.outputs.version }}.jar
           generate_release_notes: true
           draft: false
           prerelease: false

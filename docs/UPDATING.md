@@ -42,7 +42,7 @@ The project uses GitHub Actions to automatically build and publish releases when
 3. The GitHub Action will automatically:
    - Build the mod with Java 21
    - Create a GitHub release
-   - Upload the JAR artifacts from `build/libs/`
+   - Upload the main mod JAR (e.g., `event-notifications-1.0.0-mc1.21.10.jar`)
    - Generate release notes from recent commits
 
 4. The release will be available at: `https://github.com/zdwolfe/minecraft-fabric-event-notifications/releases`
