@@ -99,3 +99,25 @@ tasks.register('localInstallFabricApi') {
 		}
 	}
 }
+
+tasks.register('localBuildServer', Exec) {
+	group = 'local server'
+	description = 'Build the local Docker server image'
+
+	commandLine 'docker', 'build',
+		'--file', 'local/Dockerfile',
+		'--build-arg', "MINECRAFT_VERSION=${project.minecraft_version}",
+		'--tag', 'event-notification-local',
+		'.'
+}
+
+tasks.register('localRunServer', Exec) {
+	group = 'local server'
+	description = 'Run the local Docker server'
+
+	commandLine 'docker', 'run',
+		'--rm',
+		'-p', '25565:25565',
+		'--volume', "${project.projectDir}/local/fs/data:/data",
+		'event-notification-local'
+}

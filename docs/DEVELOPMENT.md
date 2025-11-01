@@ -1,38 +1,80 @@
-# Build
-The below instructions build the mod from source, build a local server, then start that server running the previously-compiled mod. 
+# Development
+
+## Prerequisites
+
+### Java 21
+
+This mod requires Java 21. 
 
 
-## Build jar
-Permissions:
-
-```bash
- sudo chown -R $(id -u):$(id -g) . && chmod -R 777 build && chmod -R 777 .gradle && chmod -R 777 local/fs/data/mods
-```
-
-
-Build and 'install' the jar to the local server:
-```bash
- docker run --rm -u gradle -v "${PWD}:/home/gradle/project" -w /home/gradle/project gradle:jdk21 gradle --stacktrace build localInstallJar localInstallFabricApi
-```
-
-
-## Build local server
-Build the local server. This needs to be done once, unless you're modifying the minecraft or mod version. Replace MINECRAFT_VERSION and MOD_VERSION if changed:
+Install JDK 21 directly, or use [SDKMAN](https://sdkman.io/) (macOS/Linux):
 
 ```bash
-docker build --file local/Dockerfile --build-arg MINECRAFT_VERSION=1.21.4 --tag event-notification-local .
+sdk env install
+sdk env
 ```
 
-## Run local server
-Run the local server. The server needs to be restarted very time the mod is changed to pick up the new changes.
+### Docker
+
+Local server testing requires [Docker](https://www.docker.com/get-started).
+
+### Platform Notes
+
+Commands in this guide use Unix-style syntax (`./gradlew`). On Windows, use `gradlew.bat` instead.
+
+## Quick Start
+
+Full development workflow:
+
 ```bash
-docker run -it -p 25565:25565 --volume "${PWD}/local/fs/data:/data" event-notification-local
+# Build and install mod, build local server, boot local server
+./gradlew clean build localInstallJar localInstallFabricApi localBuildServer localRunServer
 ```
 
-## Connect to local server
-Connect to the local server (with mod installed):
+## Build the Mod
+
+Build the mod JAR:
+```bash
+./gradlew clean build
+```
+
+The output JAR will be in `build/libs/event-notifications-{version}.jar`
+
+Install the mod to your local test server:
+```bash
+./gradlew clean build
+```
+
+## Local Test Server
+
+### Build Local Server
+
+Build the local server Docker image (only needs to be done once, unless you change Minecraft or mod version):
+
+```bash
+./gradlew localBuildServer
+```
+
+### Run Local Server
+
+Start the local server. Restart the server each time you rebuild the mod to pick up changes:
+
+```bash
+./gradlew localRunServer
+```
+
+To run with an interactive terminal (for server console input), use Docker directly:
+
+```bash
+docker run -it --rm -p 25565:25565 --volume "${PWD}/local/fs/data:/data" event-notification-local
+```
+
+### Connect to Local Server
+
+Connect to the local server with the mod installed:
 
 ![](./localhost-server-config.png)
 
 ### Sanity Test
+
 Check the server STDOUT to see if a STDOUT notification was emitted.
